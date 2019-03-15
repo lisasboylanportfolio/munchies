@@ -245,45 +245,18 @@ urlpatterns = [
           categories.append(category)
           #if DEBUG:
           #  print("DEUG:views.index().collection=", categories)
-        mycategory = []
-        category={
-          'title' : 'hello world 1',
-        }
-        mycategory.append(category)
-        
-        category ={
-          'title' : 'hello world 2',
-        }
- 
-        mycategory.append(category)
-        
-        if DEBUG:
-          print("DEBUG:views.categories().mycategory", mycategory)
-          
-        context={
-          'categories' : mycategory,
-        }          
 
-#         if categories != None:
-#           context={
-#             'categories': categories,  # list of dictionaries containing list of items we want)
-#                                         # Use: collection_id, title, description,image_url
-#                                         # so collections[0]['collection_id']
-#                                         # checkout display at: http://www.zoma.to/c-10799/1
-#            }
-#
-#
-#          else:
-#            print("FATAL ERROR: No categories returned:")
-#            exit()
+        if categories != None:
+          context={
+            'categories': categories,  # list of dictionaries containing list of items we want)
+                                        # Use: collection_id, title, description,image_url
+                                        # so collections[0]['collection_id']
+                                        # checkout display at: http://www.zoma.to/c-10799/1
+          }
+        else:
+           print("FATAL ERROR: No categories returned:")
+           exit()
          
-        # Process Get request
-        #context = {
-        #  'form' : dict(request.GET.get('context', ))
-        #}
-        #if DEBUG:
-        #  print("DEBUG:views.categories().context[forms]=", context['forms'])       
-
         # Display the restaurants
         return render(request, 'categories.html', context)
   
