@@ -1,3 +1,4 @@
+{% load static %}
 
 <!DOCTYPE html>
 <html>
@@ -6,8 +7,6 @@
 <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-
-</head>
 
 <style>
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,700,400italic);
@@ -38,57 +37,25 @@ body {
 	
 }
 </style>
-<body background=table-2879213_1280.jpg>
+</head>
+
+<body background = "{% static "img/table-2879213_1280.jpg" %}" >
 
     <div class="container" id="tourpackages-carousel">
-      
-      <div class="row">
-        
-        <div class="col-xs-18 col-sm-6 col-md-3">
-          <div class="thumbnail">
-            <a href= "#"><img src="http://placehold.it/500x300" alt=""></a>
-              <div class="caption">
-                <h4>{{Name of Restaurant}}</h>
-                <h5>{{Rating}}{{#of Reviews}}</h5>
-                <p><a href="#" class="btn btn-info btn-xs" role="button">Button</a></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xs-18 col-sm-6 col-md-3">
-          <div class="thumbnail">
-            <a href= "#"><img src="http://placehold.it/500x300" alt=""></a>p
-              <div class="caption">
-                <h4>{{Name of Restaurant}}</h>
-                <h5>{{Rating}}{{#of Reviews}}</h5>
-                <p><a href="#" class="btn btn-info btn-xs" role="button">Button</a></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xs-18 col-sm-6 col-md-3">
-          <div class="thumbnail">
-            <a href= "#"><img src="http://placehold.it/500x300" alt=""></a>
-              <div class="caption">
-                <h4>{{Name of Restaurant}}</h>
-                <h5>{{Rating}}{{#of Reviews}}</h5>
-                <p><a href="#" class="btn btn-info btn-xs" role="button">Button</a> </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xs-18 col-sm-6 col-md-3">
-          <div class="thumbnail">
-            <a href= "#"><img src="http://placehold.it/500x300" alt=""></a>
-              <div class="caption">
-                <h4>{{Name of Restaurant}}</h>
-                <h5>{{Rating}}{{#of Reviews}}</h5>
-                <p><a href="#" class="btn btn-info btn-xs" role="button">Button</a> </p>
-            </div>
-          </div>
-        </div>
-        
-      </div><!-- End row -->
+      {% for category in categories %}
+				<div class="row">
+					<div class="col-xs-18 col-sm-6 col-md-3">
+						<div class="thumbnail">
+							<a href= "#"><img src="http://placehold.it/500x300" alt=""></a>
+								<div class="caption">
+										<h4>{{category.title}}</h>
+									<h5></h5>
+									<p><a href="#" class="btn btn-info btn-xs" role="button">Button</a></p>
+							</div>
+						</div>
+					</div>
+				</div><!-- End row -->
+			{% endfor %}
       
     </div><!-- End container -->
 

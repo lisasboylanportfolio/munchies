@@ -207,7 +207,7 @@ urlpatterns = [
           csvfile = csv.reader(io.TextIOWrapper(url_open, encoding = 'utf-8'), delimiter=',')
           data = list(csvfile)
           if DEBUG:
-            print("DEBUG:views.index().data=", data)  
+            print("DEBUG:views.categories().data=", data)  
           for value in data:
             lat=value[3]
             lon=value[4]
@@ -220,18 +220,14 @@ urlpatterns = [
         # Use Zomato Collections API w lon and lat to get collection_id, title, description
         url="https://developers.zomato.com/api/v2.1/collections?lat=" + lat + "&lon=" + lon + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
         if DEBUG:
-         print("url=", url)
+         print("DEBUG:views.categories().url=", url)
         response=requests.get(url)
-        print("HERE1")
         data = response.json()
-        print("HERE2")        
         collections=data['collections']
-        print("HERE3")
         categories=[]
         category={}
        
         for item in collections:
-          print("HERE4")
           
           collection_id  = item['collection']['collection_id']
           result_count   = item['collection']['res_count']
@@ -239,27 +235,47 @@ urlpatterns = [
           title          = item['collection']['title']
           description    = item['collection']['description']
           
-          category.update(
-            collection_id    = collection_id,
-            result_count     = result_count,
-            imgage_url       = collection_img,
-            title            = title,
-            description      = description,
-          )
+          category={
+            'collection_id'    : collection_id,
+            'result_count'     : result_count,
+            'imgage_url'       : collection_img,
+            'title'            : title,
+            'description'      : description,
+          }
           categories.append(category)
           #if DEBUG:
           #  print("DEUG:views.index().collection=", categories)
-          print("HERE5",categories)
-          if categories != None:
-            context={
-              'categories': categories,  # list of dictionaries containing list of items we want)
-                                          # Use: collection_id, title, description,image_url
-                                          # so collections[0]['collection_id']
-                                          # checkout display at: http://www.zoma.to/c-10799/1
-            }
-          else:
-            print("FATAL ERROR: No categories returned:")
-            exit()
+        mycategory = []
+        category={
+          'title' : 'hello world 1',
+        }
+        mycategory.append(category)
+        
+        category ={
+          'title' : 'hello world 2',
+        }
+ 
+        mycategory.append(category)
+        
+        if DEBUG:
+          print("DEBUG:views.categories().mycategory", mycategory)
+          
+        context={
+          'categories' : mycategory,
+        }          
+
+#         if categories != None:
+#           context={
+#             'categories': categories,  # list of dictionaries containing list of items we want)
+#                                         # Use: collection_id, title, description,image_url
+#                                         # so collections[0]['collection_id']
+#                                         # checkout display at: http://www.zoma.to/c-10799/1
+#            }
+#
+#
+#          else:
+#            print("FATAL ERROR: No categories returned:")
+#            exit()
          
         # Process Get request
         #context = {
