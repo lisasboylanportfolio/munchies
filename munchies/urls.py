@@ -27,6 +27,6 @@ urlpatterns = [
       path('categories/', views.categories, name='categories' ),
       path('home/', views.categories ),       
       path('restaurants/', views.restaurants),    
-      path('choices/', views.getChoices),
+      path('choices/', views.getChoices, name='choices'),
       path('admin/', admin.site.urls)      
 ]

@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 import urllib.request 
 
 DEBUG=True
-DEFAULT_RESTAURANT_IMG = 'img/default_restaurant_img'
+DEFAULT_RESTAURANT_IMG = '"{% static "img/default_restaurant_img" %}"'
 
 
 class QueryForm(forms.Form):
@@ -19,10 +19,9 @@ class QueryForm(forms.Form):
     
 class CategoryForm(forms.Form):
     category_id = forms.IntegerField(required=True)
-    lat          = forms.DecimalField(max_digits=9,decimal_places=6,initial=0.0)
-    lon          = forms.DecimalField(max_digits=9,decimal_places=6,initial=0.0)
-    city         =  forms.CharField(max_length=60)
-    zipcode      = forms.CharField(max_length=5)    
+    city        = forms.CharField(max_length=60)
+    latitude    = forms.DecimalField(max_digits=9,decimal_places=6,initial=0.0)
+    longitude   = forms.DecimalField(max_digits=9,decimal_places=6,initial=0.0)
     
 def index(request):
 
@@ -45,12 +44,13 @@ def get_business_image(name, address, city):
   search_url = "https://api.cognitive.microsoft.com/bing/v7.0/images/search"
   #search_url= 'https://www.bing.com/images/search'
   #search_term = name + " " + address  + '&FORM=OIIARP'
-  search_term = "Millie's Kitchen Lafayette CA" 
+  search_term = name + " " + address + " " + city 
   headers = {"Ocp-Apim-Subscription-Key" : subscription_key}
   params  = {"q": search_term, "license": "public", "imageType": "photo"}
   #url = 'https://www.bing.com/images/search?q=' + name + " " + address + '&FORM=OIIARP'  
   if DEBUG:
-    print("DEBUG:views.get_business_image().url=", search_url, headers, params)  
+    print("DEBUG:views.get_business_image().url=", search_url, headers, params)
+    print("DEBUG:views.get_business_image().search_term=", search_term)      
   response = requests.get(search_url, headers=headers, params=params)
   response.raise_for_status()
   data = response.json()
@@ -84,9 +84,9 @@ def get_business_image(name, address, city):
   if DEBUG:
     print("DEBUG:views.get_business_image().thumbnail=", thumbnail)            
   return thumbnail
+
   
 def categories(request):
-  
 
   if DEBUG:
     print("DEBUG:views.categories()")
@@ -106,36 +106,150 @@ def categories(request):
   cuisine=''
   user_rating=''
   num_votes=''
-  average_cost_for_two=''      
-  
-  # Get the requested Collection
-  if request.method == 'POST':
-    # Get the restuarants from the specified category   
-    # Use Search API to get final data
+  average_cost_for_two=''
+  categories=[]
+  category={}  
+      
+  if request.method == 'GET':
+    if DEBUG:
+      print("DEBUG:views.categories().request", request)      
+
     # Create a form instance and populate it with data from the request
-    form = CategoryForm(request.POST)
-    if form.is_valid():    
-      collection_id = form.cleaned_data(request['collection_id'])
-      lat           = form.cleaned_data(request['latitude'])
-      lon           = form.cleaned_data(request['longitude'])
-      city          = form.cleaned_data(request['city'])      
-    
-    if DEBUG:  
-      print("DEBUG:views.restaurants().city=", city)    
-    # Get a list of restaurants matching the category user choose
-    url = 'https://developers.zomato.com/api/v2.1/search?city=' + city + '&lat=' + lat + "&lon=" + lon + "&collection_id=" + collection_id + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
+    form = QueryForm(request.GET)
+    if form.is_valid():
+      if DEBUG:
+        print("DEBUG:views.categories().if==valid")      
+
+      # Get Form Data
+      longitude = form.cleaned_data['lon']
+      latitude  = form.cleaned_data['lat']
+      zipcode   = form.cleaned_data['zipcode']
+
+      if zipcode != None:   #NO lat or longitude specified, so get them
+        # Get Latitude and longitude
+        url="https://geoservices.tamu.edu/Services/Geocode/WebService/GeocoderWebServiceHttpNonParsed_V04_01.aspx?apikey=8f308d2349cc420285c305e07ad4d049&version=4.01&zip=" + zipcode + "&allowTies=true"
+        url_open = urllib.request.urlopen(url)
+        csvfile = csv.reader(io.TextIOWrapper(url_open, encoding = 'utf-8'), delimiter=',')
+        data = list(csvfile)
+        if DEBUG:
+          print("DEBUG:views.categories().data=", data)  
+        for value in data:
+          latitude=value[3]
+          longitude=value[4]
+          if DEBUG:
+            print("DEBUG:views.categories().value=", value)    
+            print("DEBUG:views.categories().lat=", latitude)
+            print("DEBUG:views.categories().lon=", longitude)
+          
+            
+      # Using lat and lon get nerby resuarants and city for lat and lon
+      # Use Zomato Collections API w lon and lat to get collection_id, title, description
+      url_categories="https://developers.zomato.com/api/v2.1/collections?lat=" + latitude + "&lon=" + longitude + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
+      url_city ='https://developers.zomato.com/api/v2.1/geocode?lat=' + latitude + '&lon=' + longitude + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
+      if DEBUG:
+       print("DEBUG:views.categories().url_categories=", url_categories)
+       print("DEBUG:views.categories().url_city=", url_city)         
+      try:
+         response=requests.get(url_city)
+         data = response.json()
+         city = data['location']['title']        # get city which correspondes to lat and lon
+         if DEBUG:
+          print("DEBUG:views.categories().city=", city)           
+         response=requests.get(url_categories)
+         data = response.json()
+         collections=data['collections']
+         
+         # Get form data
+         for item in collections:            
+           collection_id  = item['collection']['collection_id']
+           result_count   = item['collection']['res_count']
+           collection_img = item['collection']['image_url']
+           title          = item['collection']['title']
+           description    = item['collection']['description']
+           
+           category={
+             'collection_id'    : collection_id,
+             'result_count'     : result_count,
+             'imgage_url'       : collection_img,
+             'title'            : title,
+             'description'      : description,
+             'city'             : city,
+             'lat'              : latitude,
+             'lon'              : longitude,
+           }
+           categories.append(category)
+           #if DEBUG:
+           #  print("DEUG:views.index().collection=", categories)
+      except KeyError:
+        print ('Where is my collection data?')
+        
+      if categories == None:
+        print("FATAL ERROR: No categories returned:")
+        exit()
+      else:
+       context={
+         'categories': categories,  # list of dictionaries containing list of items we want)
+                                     # Use: collection_id, title, description,image_url
+                                     # so collections[0]['collection_id']
+                                     # checkout display at: http://www.zoma.to/c-10799/1
+       }
+       # Display the categories
+       return render(request, 'categories.html', context)
+  else:
+    print("No POST in categories()")
+
+  
+def restaurants(request):
+  if DEBUG:
+    print("DEBUG:views.restaurants()")    
+      
+  # Get the requested Collection
+  if request.method == 'GET':
+    if DEBUG:
+      print("DEBUG:views.restaurants().if GET")
+
+    try:         
+       # Parse the request to get parameters
+      if DEBUG:
+       print("DEBUG:views.restaurants().request", request)
+       param=f'{request}'
+       param=list(f'{request}'.split("&")) # parse out variables assignments
+       del param[0]                        #remove header:'<WSGIRequest: GET ' from reults, leaving only parameters
+       tmp=param[-1].replace("'>", "")    # remove header garbage from last element
+       param[-1]=tmp
+       param=list_to_dict(param)
+       if DEBUG:
+        print("DEBUG:views.restaurants().param=",param)
+        
+      collection_id = param['collection_id']
+      city          = param['city']
+      latitude      = param['latitude']
+      longitude     = param['longitude']
+      if DEBUG:
+          print("DEBUG:views.restaurants().collection_id=",collection_id)
+          print("DEBUG:views.restaurants().collection_id=",city)
+          print("DEBUG:views.restaurants().collection_id=",latitude)
+          print("DEBUG:views.restaurants().collection_id=",longitude)                 
+    except KeyError:
+      print ('Where is my collection data?')
+
+    # Get a list of restaurants matching the category user chose
+    url = 'https://developers.zomato.com/api/v2.1/search?q=' + city + '&lat=' + latitude + "&lon=" + longitude + "&collection_id=" + collection_id + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
     if DEBUG:  
       print("DEBUG:views.restaurants().url=", url)
+
     response=requests.get(url)
     data = response.json()
     num_restaurants = data['results_found']
-    result_restaurants=data['restaurants']
+    if DEBUG:
+      print("DEBUG:views.restaurants().num_restaurants=", num_restaurants)
+    results=data['restaurants']
     restaurants=[]
-    restaurant={}
      
     # Get subset of restaurant properties
-    for pos, item in enumerate(result_restaurants):
-      if DEBUG:  
+    for pos, item in enumerate(results):
+      if DEBUG:
+        print("DEBUG:views.restaurants().pos=", pos)        
         print("DEBUG:views.restaurants().item=", item)
       slider_id = pos   # This is used to control carousel flow
       restaurant_id = item['restaurant']['id']
@@ -153,20 +267,20 @@ def categories(request):
       num_votes = item['restaurant']['user_rating']['votes']
       average_cost_for_two = item['restaurant']['average_cost_for_two']
     
-      restaurant.update(
-        slider_id      = position,  # used to control carousel flow
-        restaurant_id = restaurant_id,
-        name          = name,
-        address       = address,
-        url           = url,
-        city          = city,
-        city_id       = city_id,
-        zipcode       = zipcode,
-        cuisine       =cuisine,
-        user_rating   = user_rating,
-        num_votes     = num_votes,
-        average_cost  = average_cost_for_two,    
-      )
+      restaurant={
+        'slider_id'     : pos,  # used to control carousel flow
+        'restaurant_id' : restaurant_id,
+        'name'          : name,
+        'address'       : address,
+        'url'           : url,
+        'city'          : city,
+        'city_id'       : city_id,
+        'zipcode'       : zipcode,
+        'cuisine'       : cuisine,
+        'user_rating'   : user_rating,
+        'num_votes'     : num_votes,
+        'average_cost'  : average_cost_for_two,    
+      }
       restaurants.append(restaurant)
   
     print(restaurants)
@@ -175,100 +289,34 @@ def categories(request):
     context={
       'restaurants':restaurants,   # A list of restaurants
     }
-    """
-urlpatterns = [
-urlpatterns = [
-      path('', views.index, name=index),
-      path('home/', views.index, name=main),
-      path('categories/', views.categories,name=query),
-      path('restaurants/', views.restaurants,name=choices),    
-      path('choices/', views.getChoices, name=results),
-    """    
-    # Get the restaurants associated with the choosen category
-    return redirect('choices')    
-  elif request.method == 'GET':
-    if DEBUG:
-      print("DEBUG:views.categories().request", request)      
-      # Create a form instance and populate it with data from the request
-      form = QueryForm(request.GET)
-      if form.is_valid():
-        if DEBUG:
-          print("DEBUG:views.index().if==valid")      
-  
-        # Create a new user  - TODO
-        longitude = form.cleaned_data['lon']
-        latitude  = form.cleaned_data['lat']
-        zipcode   = form.cleaned_data['zipcode']
+    # Display the restaurants
+    return render(request, 'restaurants.html', context)
 
-        if zipcode != None:
-          # Get Latitude and longitude
-          url="https://geoservices.tamu.edu/Services/Geocode/WebService/GeocoderWebServiceHttpNonParsed_V04_01.aspx?apikey=8f308d2349cc420285c305e07ad4d049&version=4.01&zip=" + zipcode + "&allowTies=true"
-          url_open = urllib.request.urlopen(url)
-          csvfile = csv.reader(io.TextIOWrapper(url_open, encoding = 'utf-8'), delimiter=',')
-          data = list(csvfile)
-          if DEBUG:
-            print("DEBUG:views.categories().data=", data)  
-          for value in data:
-            lat=value[3]
-            lon=value[4]
-            if DEBUG:
-              print ("value=", value)    
-              print("lat=", lat)
-              print("lon=", lon)
-            
-        # Using lat and lon get nerby resuarants
-        # Use Zomato Collections API w lon and lat to get collection_id, title, description
-        url="https://developers.zomato.com/api/v2.1/collections?lat=" + lat + "&lon=" + lon + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
-        if DEBUG:
-         print("DEBUG:views.categories().url=", url)
-        response=requests.get(url)
-        data = response.json()
-        collections=data['collections']
-        categories=[]
-        category={}
-       
-        for item in collections:
-          
-          collection_id  = item['collection']['collection_id']
-          result_count   = item['collection']['res_count']
-          collection_img = item['collection']['image_url']
-          title          = item['collection']['title']
-          description    = item['collection']['description']
-          
-          category={
-            'collection_id'    : collection_id,
-            'result_count'     : result_count,
-            'imgage_url'       : collection_img,
-            'title'            : title,
-            'description'      : description,
-          }
-          categories.append(category)
-          #if DEBUG:
-          #  print("DEUG:views.index().collection=", categories)
 
-        if categories != None:
-          context={
-            'categories': categories,  # list of dictionaries containing list of items we want)
-                                        # Use: collection_id, title, description,image_url
-                                        # so collections[0]['collection_id']
-                                        # checkout display at: http://www.zoma.to/c-10799/1
-          }
-        else:
-           print("FATAL ERROR: No categories returned:")
-           exit()
-         
-        # Display the restaurants
-        return render(request, 'categories.html', context)
-  
-def restaurants(request):
-  if DEBUG:
-    print("DEBUG:views.restaurants()")    
-  pass
 
 def getChoices(request):
   if DEBUG:
-    print("DEBUG:views.getChoices()")    
-  pass
+    print("DEBUG:views.getChoices()")
+    
+def list_to_dict(rlist):
+  # convert a list with = seperated values to dict and strip white spaces
+  return dict(map(lambda s : map(str.strip, s.split('=')), rlist))  
+
+def pretty_print_POST(req):
+    """
+    At this point it is completely built and ready
+    to be fired; it is "prepared".
+
+    However pay attention at the formatting used in 
+    this function because it is programmed to be pretty 
+    printed and may differ from the actual request.
+    """
+    print('{}\n{}\n{}\n\n{}'.format(
+        '-----------START-----------',
+        req.method + ' ' + req.url,
+        '\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+        req.body,
+    ))
 
 
 if __name__ == '__main__':

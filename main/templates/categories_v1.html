@@ -50,21 +50,19 @@ body {
 									<div class="caption">
 											<h4>{{category.title}}</h>
 										<h5></h5>
-										<form id="collection_id" method="GET" action="/restaurants/">
-												{% csrf_token %}
-												<input type="hidden" name="collection_id" value={{category.collection_id}} />
-												<input type="hidden" name="city" value="{{category.city}}" />
-												<input type="hidden" name="latitude" value="{{category.lat}}" />
-												<input type="hidden" name="longitude" value="{{category.lon}}" />  																								
-												<button class="btn btn-lg btn-primary">Choose Me</button>						
-										</form>									
+										<form action="/categories" method="POST" >
+											{% csrf_token %}											
+											<input type="hidden" name="collection_id" value={{ category.collection_id }} />											
+											<a href="#" class="btn btn-info btn-xs" role="button">Button</a>
+										</form>										
 								</div>
 							</div>
 
 					</div>
-			</div>  <!-- End row -->
+				</div><!-- End row -->
 			{% endfor %}
-			<!--   </div><!-- End container -->
+      
+    </div><!-- End container -->
 
 </body>
 </html>
