@@ -170,7 +170,7 @@ def categories(request):
            category={
              'collection_id'    : collection_id,
              'result_count'     : result_count,
-             'imgage_url'       : collection_img,
+             'image_url'       : collection_img,
              'title'            : title,
              'description'      : description,
              'city'             : city,

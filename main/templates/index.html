@@ -10,9 +10,9 @@
 <style>
 
 .top{
-	font-family: 'Gloria Hallelujah', cursive;}
+    font-family: 'Gloria Hallelujah', cursive;}
 .body{
-	position:center;}
+    position:center;}
 
 </style>
 </head>
@@ -20,23 +20,23 @@
 <body background = "{% static "img/table-2879213_1280.jpg" %}" >
 
 <div class = body>
-	
-	<p><h1 class=top><center> Welcome Muncher!</center> </h1></p>	        <!-- Form for editing tweet -->
-        <form action="/categories" method="GET">
-			{% csrf_token %}
-			{{ form.as_p }}
-			<center><button id="myBtn"> Enter</button><center>
-		</form>
-	<h4><center> OR </center></h4>
-	
-	        <!-- Form for editing tweet -->
+
+    <p><h1 class=top><center> Welcome Muncher!</center> </h1></p>            <!-- Form for editing tweet -->
+        <center><form action="/categories" method="GET"><center>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <center><button id="myBtn"> Enter</button><center>
+        </form>
+    <h4><center> OR </center></h4>
+
+            <!-- Form for editing tweet -->
         <form action="." method="POST">
             {% csrf_token %}
-			<p><center>Click the button to get your coordinates.</center></p>
-		</form>
+<p><center>Click the button to get your coordinates.</center></p>
+        </form>
 
-	<!-- #Get your Latitude and Longitude -->
-	<center><button>Muncher Location</button></center>
+    <!-- #Get your Latitude and Longitude -->
+    <center><button>Muncher Location</button></center>
 </div>
 
 </body>

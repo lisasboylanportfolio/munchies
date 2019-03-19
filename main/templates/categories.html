@@ -1,9 +1,10 @@
 {% load static %}
 
 <!DOCTYPE html>
+
 <html>
 <head>
-	<title></title>
+    <title></title>
 <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
@@ -11,7 +12,6 @@
 <style>
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,700,400italic);
 
-font-family: 'Open Sans', sans-serif;
 
 html {
   font-family: 'Open Sans', sans-serif;
@@ -34,7 +34,7 @@ body {
     width: 100%;
 }
 .caption{
-	
+
 }
 </style>
 </head>
@@ -43,28 +43,29 @@ body {
 
     <div class="container" id="tourpackages-carousel">
       {% for category in categories %}
-				<div class="row">
-					<div class="col-xs-18 col-sm-6 col-md-3">
-											<div class="thumbnail">
-								<a href= "#"><img src="http://placehold.it/500x300" alt=""></a>
-									<div class="caption">
-											<h4>{{category.title}}</h>
-										<h5></h5>
-										<form id="collection_id" method="GET" action="/restaurants/">
-												{% csrf_token %}
-												<input type="hidden" name="collection_id" value={{category.collection_id}} />
-												<input type="hidden" name="city" value="{{category.city}}" />
-												<input type="hidden" name="latitude" value="{{category.lat}}" />
-												<input type="hidden" name="longitude" value="{{category.lon}}" />  																								
-												<button class="btn btn-lg btn-primary">Choose Me</button>						
-										</form>									
-								</div>
-							</div>
-
-					</div>
-			</div>  <!-- End row -->
-			{% endfor %}
-			<!--   </div><!-- End container -->
+                <div class="row">
+                    <div class="col-xs-12 col-sm-6 col-md-3">
+                      <div class="thumbnail">
+                        <img src="{{category.image_url}}" alt=""></a>
+                          <div class="caption">
+                                  <h4>{{category.title}} ({{category.result_count}})</h>
+                                  <h6> {{category.desxcription}}</h6>
+                              <h5></h5>
+                              <form id="collection_id" method="GET" action="/restaurants/">
+                                      {% csrf_token %}
+                                      <input type="hidden" name="collection_id" value={{category.collection_id}} />
+                                      <input type="hidden" name="city" value="{{category.city}}" />
+                                      <input type="hidden" name="latitude" value="{{category.lat}}" />
+                                      <input type="hidden" name="longitude" value="{{category.lon}}" />
+                                      <button class="btn btn-lg btn-primary">Choose Me</button>
+                              </form>
+                          </div>
+                      </div>
+                    </div>
+                </div>  <!-- End row -->
+      {% endfor %}
+    <!--   </div><!-- End container -->
 
 </body>
+
 </html>
