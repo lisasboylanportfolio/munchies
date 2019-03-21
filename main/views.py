@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 import urllib.request 
 
 DEBUG=True
-DEFAULT_RESTAURANT_IMG = '"{% static "img/default_restaurant_img" %}"'
+DEFAULT_RESTAURANT_IMG ="/img/default_restaurant.jpg"
 
 
 class QueryForm(forms.Form):
@@ -22,19 +22,20 @@ class CategoryForm(forms.Form):
     city        = forms.CharField(max_length=60)
     latitude    = forms.DecimalField(max_digits=9,decimal_places=6,initial=0.0)
     longitude   = forms.DecimalField(max_digits=9,decimal_places=6,initial=0.0)
-    
+  
 def index(request):
 
-    if DEBUG:
-      print("DEBUG:views.index()")
-      
-      # Process Get request
-      form = QueryForm()
-      context = {
-        'form' : form,
-      }
-      return render(request, 'index.html', context)
-       
+  if DEBUG:
+    print("DEBUG:views.index()")
+    
+    # Process Get request
+    form = QueryForm()
+    context = {
+      'form' : form,
+    }
+
+    return render(request, 'index.html', context)
+  
 def get_business_image(name, address, city):
   if DEBUG:
     print("DEBUG:views.get_business_image()")    
@@ -170,7 +171,7 @@ def categories(request):
            category={
              'collection_id'    : collection_id,
              'result_count'     : result_count,
-             'image_url'       : collection_img,
+             'image_url'        : collection_img,
              'title'            : title,
              'description'      : description,
              'city'             : city,
@@ -285,18 +286,38 @@ def restaurants(request):
   
     print(restaurants)
     print("len restaurants=", len(restaurants))
-    
+ 
+#    context={
+#      'restaurants':restaurants,   # A list of restaurants
+#    }
+    #EBUG
     context={
-      'restaurants':restaurants,   # A list of restaurants
+        'slider_id'     : "1",  # used to control carousel flow
+        'restaurant_id' : "12345",
+        'name'          : "millies",
+        'address'       : "1234 e St",
+        'url'           : "img/default_restaurant.jpg",
+        'city'          : "Lafayette",
+        'city_id'       : "789",
+        'zipcode'       : "94549",
+        'cuisine'       : "Fast Food",
+        'user_rating'   : "3",
+        'num_votes'     : "5",
+        'average_cost'  : "$35",
     }
     # Display the restaurants
     return render(request, 'restaurants.html', context)
 
 
-
 def getChoices(request):
   if DEBUG:
     print("DEBUG:views.getChoices()")
+    if requests.method == 'POST':
+    #save user restaurants
+      redirect('/')
+    elif request.method == 'GET':
+    # Get user restaurants
+      render(request, 'choices.html, context')
     
 def list_to_dict(rlist):
   # convert a list with = seperated values to dict and strip white spaces

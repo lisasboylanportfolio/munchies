@@ -1,43 +1,36 @@
-{% load static %}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
 
-<html>
-
-<head>
-
-<link href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah" rel="stylesheet">
-<style>
-
-.top{
-    font-family: 'Gloria Hallelujah', cursive;}
-.body{
-    position:center;}
-
-</style>
-</head>
-
-<body background = "{% static "img/table-2879213_1280.jpg" %}" >
-
-<div class = body>
-
-    <p><h1 class=top><center> Welcome Muncher!</center> </h1></p>            <!-- Form for editing tweet -->
-        <center><form action="/categories" method="GET"><center>
-            {% csrf_token %}
-            {{ form.as_p }}
-            <center><button id="myBtn"> Enter</button><center>
-        </form>
-    <h4><center> OR </center></h4>
-
-            <!-- Form for editing tweet -->
-        <form action="." method="POST">
-            {% csrf_token %}
-<p><center>Click the button to get your coordinates.</center></p>
-        </form>
-
-    <!-- #Get your Latitude and Longitude -->
-    <center><button>Muncher Location</button></center>
-</div>
-
-</body>
-</html>
+{%block content_main %}
+	<div class = "app_background flex_container">	
+		<h1>Welcome Muncher!</h1>
+		
+		<!-- #Get your Latitude and Longitude -->
+		<p class="instruction instruction_top">Enter Your Location</p>
+		
+		<form action="/categories" method="GET">
+			{% csrf_token %}
+			<div class='label'>
+				<p>Zipcode:</p>
+				<span>{{ form.zipcode }}</span>
+			</div>
+			
+			<h4 class="inset_text instruction"> OR </h4>
+			
+			<div class="label">
+				<p>Latitude:</p>
+				<span>{{ form.lat }}</span>
+			</div>
+			
+			<div class='label'>
+				<p>Longitude:</p>
+				<span>{{ form.lon }}</span>
+			</div>
+				
+			<div class="flex_container">
+				<button class="flex-align border_on_box"> Enter</button>
+			</div>
+		</form>
+		
+	</div>
+{%endblock content_main %}
