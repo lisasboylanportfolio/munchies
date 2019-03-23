@@ -143,20 +143,24 @@ def categories(request):
             print("DEBUG:views.categories().lon=", longitude)
           
             
-      # Using lat and lon get nerby resuarants and city for lat and lon
-      # Use Zomato Collections API w lon and lat to get collection_id, title, description
-      url_categories="https://developers.zomato.com/api/v2.1/collections?lat=" + latitude + "&lon=" + longitude + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
+      # Using lat and lon get city id for lat and lon
+      # Use Zomato Collections API w city_id lon and lat to get collection_id, title, description
       url_city ='https://developers.zomato.com/api/v2.1/geocode?lat=' + latitude + '&lon=' + longitude + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
       if DEBUG:
-       print("DEBUG:views.categories().url_categories=", url_categories)
-       print("DEBUG:views.categories().url_city=", url_city)         
-      try:
-         response=requests.get(url_city)
-         data = response.json()
-         city = data['location']['title']        # get city which correspondes to lat and lon
-         if DEBUG:
-          print("DEBUG:views.categories().city=", city)           
-         response=requests.get(url_categories)
+       print("DEBUG:views.categories().url_city=", url_city)       
+      response=requests.get(url_city)
+      data = response.json()
+      city = data['location']['title']        # get city which correspondes to lat and lon
+      city_id=data['location']['city_id']
+      if DEBUG:
+       print("DEBUG:views.categories().city=", city)
+       print("DEBUG:views.categories().city_id=", city_id)       
+
+      url_collections="https://developers.zomato.com/api/v2.1/collections?city_id=" + str(city_id) + "&lat=" + latitude + "&lon=" + longitude + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
+      if DEBUG:
+       print("DEBUG:views.categories().url_collections=", url_collections)      
+      try: 
+         response=requests.get(url_collections)
          data = response.json()
          collections=data['collections']
          
@@ -209,36 +213,44 @@ def restaurants(request):
     if DEBUG:
       print("DEBUG:views.restaurants().if GET")
 
-    try:         
-       # Parse the request to get parameters
-      if DEBUG:
-       print("DEBUG:views.restaurants().request", request)
-       param=f'{request}'
-       param=list(f'{request}'.split("&")) # parse out variables assignments
-       del param[0]                        #remove header:'<WSGIRequest: GET ' from reults, leaving only parameters
-       tmp=param[-1].replace("'>", "")    # remove header garbage from last element
-       param[-1]=tmp
-       param=list_to_dict(param)
-       if DEBUG:
-        print("DEBUG:views.restaurants().param=",param)
-        
-      collection_id = param['collection_id']
-      city          = param['city']
-      latitude      = param['latitude']
-      longitude     = param['longitude']
-      if DEBUG:
-          print("DEBUG:views.restaurants().collection_id=",collection_id)
-          print("DEBUG:views.restaurants().collection_id=",city)
-          print("DEBUG:views.restaurants().collection_id=",latitude)
-          print("DEBUG:views.restaurants().collection_id=",longitude)                 
-    except KeyError:
-      print ('Where is my collection data?')
-
+    if DEBUG:
+      print("DEBUG:views.restaurants().request", request)
+    
+    arg_str=f'{request}'
+    # Find prefix to remove from string
+    params=list(f'{request}'.split("?")) # parse out variables assignments
+    if DEBUG:
+     print("DEBUG:views.restaurants().params: split ?=",params)
+    # Remove prefix from string
+    params=arg_str.replace(params[0] + '?',"")
+    #del param[0]                        #remove header:'<WSGIRequest: GET ' from reults, leaving only parameters
+    if DEBUG:
+     print("DEBUG:views.restaurants().params: replace=",params)        
+    params=list(f'{params}'.split("&")) # parse out variables assignment
+    if DEBUG:
+     print("DEBUG:views.restaurants().params: split &=",params)       
+    tmp=params[-1].replace("'>", "")    # remove header garbage from last element
+    params[-1]=tmp
+    params=list_to_dict(params)
+    if DEBUG:
+     print("DEBUG:views.restaurants().param=",params)
+     
+    collection_id = params['collection_id']
+    city          = params['city']
+    latitude      = params['latitude']
+    longitude     = params['longitude']
+    if DEBUG:
+       print("DEBUG:views.restaurants().collection_id=",collection_id)
+       print("DEBUG:views.restaurants().collection_id=",city)
+       print("DEBUG:views.restaurants().collection_id=",latitude)
+       print("DEBUG:views.restaurants().collection_id=",longitude)                 
+    
     # Get a list of restaurants matching the category user chose
-    url = 'https://developers.zomato.com/api/v2.1/search?q=' + city + '&lat=' + latitude + "&lon=" + longitude + "&collection_id=" + collection_id + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"
+    # Had to remove city, because collecgtions returns restaurant groups near but not in city, caus
+    url = 'https://developers.zomato.com/api/v2.1/search?lat=' + latitude + "&lon=" + longitude + "&collection_id=" + collection_id + "&apikey=58c103ef995b6c9ca5d19c2a8e7a3e42"    
     if DEBUG:  
       print("DEBUG:views.restaurants().url=", url)
-
+    
     response=requests.get(url)
     data = response.json()
     num_restaurants = data['results_found']
@@ -246,20 +258,21 @@ def restaurants(request):
       print("DEBUG:views.restaurants().num_restaurants=", num_restaurants)
     results=data['restaurants']
     restaurants=[]
-     
+    
     # Get subset of restaurant properties
     for pos, item in enumerate(results):
       if DEBUG:
-        print("DEBUG:views.restaurants().pos=", pos)        
-        print("DEBUG:views.restaurants().item=", item)
+       print("DEBUG:views.restaurants().pos=", pos)        
+       print("DEBUG:views.restaurants().item=", item)
       slider_id = pos   # This is used to control carousel flow
       restaurant_id = item['restaurant']['id']
       name = item['restaurant']['name']
       address = item['restaurant']['location']['address']  #  street addr, city, zip
       #url = item['url']      #DEBUG: this probably wont work
-      url =  get_business_image(name, re.sub(',','', address), city)      # remove ',' from address and the pass on
+      # url =  get_business_image(name, re.sub(',','', address), city)      # remove ',' from address and the pass on
+      url = "../img/default_restaurant.jpg"
       if DEBUG:
-        print("DEBUG:views.restaurants().url", url)          
+       print("DEBUG:views.restaurants().url", url)          
       city = item['restaurant']['location']['locality']
       city_id = item['restaurant']['location']['city_id']  # Zomato assigned city id
       zipcode = item['restaurant']['location']['zipcode']
@@ -267,57 +280,46 @@ def restaurants(request):
       user_rating = item['restaurant']['user_rating']['aggregate_rating']
       num_votes = item['restaurant']['user_rating']['votes']
       average_cost_for_two = item['restaurant']['average_cost_for_two']
-    
+      
       restaurant={
-        'slider_id'     : pos,  # used to control carousel flow
-        'restaurant_id' : restaurant_id,
-        'name'          : name,
-        'address'       : address,
-        'url'           : url,
-        'city'          : city,
-        'city_id'       : city_id,
-        'zipcode'       : zipcode,
-        'cuisine'       : cuisine,
-        'user_rating'   : user_rating,
-        'num_votes'     : num_votes,
-        'average_cost'  : average_cost_for_two,    
+       'slider_id'     : pos,  # used to control carousel flow
+       'restaurant_id' : restaurant_id,
+       'name'          : name,
+       'address'       : address,
+       'url'           : url,
+       'city'          : city,
+       'city_id'       : city_id,
+       'zipcode'       : zipcode,
+       'cuisine'       : cuisine,
+       'user_rating'   : user_rating,
+       'num_votes'     : num_votes,
+       'average_cost'  : average_cost_for_two,    
       }
       restaurants.append(restaurant)
-  
+    
     print(restaurants)
     print("len restaurants=", len(restaurants))
- 
-#    context={
-#      'restaurants':restaurants,   # A list of restaurants
-#    }
-    #EBUG
+    
     context={
-        'slider_id'     : "1",  # used to control carousel flow
-        'restaurant_id' : "12345",
-        'name'          : "millies",
-        'address'       : "1234 e St",
-        'url'           : "img/default_restaurant.jpg",
-        'city'          : "Lafayette",
-        'city_id'       : "789",
-        'zipcode'       : "94549",
-        'cuisine'       : "Fast Food",
-        'user_rating'   : "3",
-        'num_votes'     : "5",
-        'average_cost'  : "$35",
+    'restaurants':restaurants,   # A list of restaurants
     }
+    #DEBUG
+    
     # Display the restaurants
     return render(request, 'restaurants.html', context)
-
-
+    
+    
 def getChoices(request):
   if DEBUG:
-    print("DEBUG:views.getChoices()")
-    if requests.method == 'POST':
+    print("DEBUG:views.getChoices().request=", request)
+  if request.method == 'POST':
+    print("DEBUG:views.getChoices().POST")
     #save user restaurants
-      redirect('/')
-    elif request.method == 'GET':
-    # Get user restaurants
-      render(request, 'choices.html, context')
+    #redirect('/')
+  elif request.method == 'GET':
+    print("DEBUG:views.getChoices().GET")# Get user restaurants
+    restaurant_id = request.GET.get('restaurant_id')
+    #render(request, 'choices.html, context')
     
 def list_to_dict(rlist):
   # convert a list with = seperated values to dict and strip white spaces

@@ -30,27 +30,25 @@
                             <form method="GET" action="/choices/">
                             {% csrf_token %}                                                            
                                 <div class="card">
-                                    <div class="card_header_container">
-                                      <img src="{% static "/img/default_restaurant.jpg" %}" alt="{{restaurant.name}}" width="100%" height="75%">
-                                      <button class="btn" ><img class="right_arrow"  /></button>
-                                    </div> <!-- container -->
-                                    <div class="card-body">
-                                      <div class="row dynamic_width_row">   
-                                          <div class="dynaimic_width_col">
-                                              <h4 class="card-title">{{ restaurant.name }}</h4>
-                                          </div>
-                                          <div class="text_box servive-block servive-block-blue">
-                                             <span>{{ restaurant.user_rating }} &frasl; {{ restaurant.num_votes }}<span/>
-                                          </div>
-                                      </div> <!-- row -->
-                                      <div class="row">
-                                          <p class="card-text">{{ restaurant.address }}</p>
-                                      </div>
-                                      <div class="row")
-                                          <p class="card-text">{{ restaurant.cuisine }}</p>
-                                          <input type="hidden" name="restaurant_id" value="{{restaurant.restaurant_id}}" />                                     
-                                      </div>
-                                    </div> <!-- body -->
+                                  <img class="card-img-top img-responsive" src="{% static "/img/default_restaurant.jpg" %}" alt="{{restaurant.name}}" width="100%" height="75%">
+                                  <button class="btn btn-lg">           
+                                    <img class="btn btn-sm" src="../img/star.png" alt=">"/>
+                                  </button>                                  
+                                  <div class="card-body">
+                                    <div class="row dynamic_width_row">   
+                                        <div class="dynaimic_width_col">
+                                            <h4 class="card-title">{{ restaurant.name }}</h4>
+                                        </div>
+                                        <div class="text_box">
+                                           <span style="text-align: center; background-color:blue; padding: 9px">{{ restaurant.user_rating }} / {{ restaurant.num_votes }}<span/>
+                                        </div>
+                                    </div> <!-- row -->
+                                    <div>
+                                        <p class="card-text">{{ restaurant.address }}</p>
+                                        <p class="card-text">{{ restaurant.cuisine }}</p>
+                                        <input type="hidden" name="restaurant_id" value="{{restaurant.restaurant_id}}" />                                     
+                                    </div>
+                                  </div> <!-- body -->
                                 </div>  <!-- card -->
                             </form>
                         </div>  <!-- item -->
@@ -61,7 +59,9 @@
                     <a class="carousel-control-prev" href="#myCarousel" data-slide="prev">
                         <span class="carousel-control-prev-icon"></span>
                     </a>
-
+                    <a class="carousel-control-next" href="/choices/">
+                        <span class="carousel-control-next-icon"></span>                        
+                    </a>
             </div> <!-- container -->
         </div> <!-- carousel -->
 {% endblock content_main %}  

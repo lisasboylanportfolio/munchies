@@ -25,13 +25,11 @@ from main import views
 
 urlpatterns = [
       path('', views.index),
-#      path('home/', views.index),
-
       path('categories/', views.categories, name='categories' ),
       path('home/', views.categories ),       
-      path('restaurants/', views.restaurants),    
+      path('restaurants/', views.restaurants),      
       path('choices/', views.getChoices, name='choices'),
-      path('admin/', admin.site.urls)      
+      path('admin/', admin.site.urls)
 ]
 
 if settings.DEBUG:
